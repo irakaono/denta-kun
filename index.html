@@ -69,6 +69,8 @@
   .hist-name input{background:transparent;border:none;color:var(--accent);font-size:13px;width:100%;padding:0;font-family:inherit;}
   .hist-name input:focus{outline:none;border-bottom:1px dashed var(--accent);}
   .hist-val{font-size:23px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);}
+  .btn-name{background:var(--panel2);color:var(--sub);border:1px solid var(--line);border-radius:9px;font-size:14px;padding:10px 11px;cursor:pointer;flex:0 0 auto;transition:filter .08s;}
+  .btn-name:active{filter:brightness(1.3);}
   .btn-del{background:var(--panel2);color:var(--danger);border:1px solid var(--line);border-radius:9px;font-size:12px;padding:10px 12px;cursor:pointer;flex:0 0 auto;transition:filter .08s;}
   .btn-del:active{filter:brightness(1.3);}
   .empty{color:var(--sub);text-align:center;font-size:13px;padding:28px 10px;opacity:.75;line-height:1.7;}
@@ -307,10 +309,16 @@
       main.addEventListener("mousedown", function(e){ if(!item.editing) startDrag(e, item.value); });
       main.addEventListener("touchstart", function(e){ if(!item.editing) startDrag(e, item.value); }, {passive:false});
 
+      var nm=document.createElement("button"); nm.className="btn-name"; nm.textContent="✎";
+      nm.onclick=function(){
+        item.editing=true; renderHistory();
+        setTimeout(function(){ var el=elList.querySelector("input"); if(el) el.focus(); },0);
+      };
+
       var dl=document.createElement("button"); dl.className="btn-del"; dl.textContent="削除";
       dl.onclick=function(){ delItem(item.id); };
 
-      li.appendChild(star); li.appendChild(chk); li.appendChild(main); li.appendChild(dl);
+      li.appendChild(star); li.appendChild(chk); li.appendChild(main); li.appendChild(nm); li.appendChild(dl);
       elList.appendChild(li);
     });
     render();
