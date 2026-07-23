@@ -69,6 +69,7 @@
   .hist-name input{background:transparent;border:none;color:var(--accent);font-size:13px;width:100%;padding:0;font-family:inherit;}
   .hist-name input:focus{outline:none;border-bottom:1px dashed var(--accent);}
   .hist-val{font-size:23px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);}
+  .hist-formula{font-size:11px;color:#5c6b80;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .btn-name{background:var(--panel2);color:var(--sub);border:1px solid var(--line);border-radius:9px;font-size:14px;padding:10px 11px;cursor:pointer;flex:0 0 auto;transition:filter .08s;}
   .btn-name:active{filter:brightness(1.3);}
   .btn-del{background:var(--panel2);color:var(--danger);border:1px solid var(--line);border-radius:9px;font-size:12px;padding:10px 12px;cursor:pointer;flex:0 0 auto;transition:filter .08s;}
@@ -213,6 +214,10 @@
     elResult.textContent = r==="" ? "0" : fmtNum(r);
   }
 
+  function readableFormula(f){
+    return tokenize(f).join(" ");
+  }
+
   function press(key){
     elTaxInfo.textContent="";
     if(key==="clear"){ expr=""; render(); return; }
@@ -236,7 +241,7 @@
   function saveCurrentResult(){
     var v=safeEval(expr);
     if(v===""){ toast("保存できません"); return; }
-    saveToHistory(v);
+    saveToHistory(v, expr);
     toast("保存しました");
   }
   function insertAtGap(i, text){
@@ -250,8 +255,8 @@
   // ================= 履歴 =================
   var elList=document.getElementById("histList"), elEmpty=document.getElementById("emptyMsg");
 
-  function saveToHistory(value){
-    history.unshift({ id:"h"+(idc++), name:"", value:value, star:false, sel:false, editing:false });
+  function saveToHistory(value, formula){
+    history.unshift({ id:"h"+(idc++), name:"", value:value, formula:formula||"", star:false, sel:false, editing:false });
     if(history.length>200) history.pop();
     persist(); renderHistory();
   }
@@ -303,6 +308,10 @@
       }
       var val=document.createElement("div"); val.className="hist-val"; val.textContent=fmtNum(item.value);
       main.appendChild(val);
+      if(item.formula && item.formula !== String(item.value)){
+        var fo=document.createElement("div"); fo.className="hist-formula"; fo.textContent=readableFormula(item.formula);
+        main.appendChild(fo);
+      }
 
       // タップ → 操作メニュー／ドラッグ → 式の好きな場所に挿入
       main.addEventListener("click", function(){ if(!item.editing && !justDragged) openOpSheet(item); });
@@ -349,6 +358,12 @@
     var h=document.createElement("h3"); h.textContent=item.name||"保存した答え";
     var v=document.createElement("div"); v.className="sheet-val"; v.textContent=fmtNum(item.value);
     opSheet.appendChild(h); opSheet.appendChild(v);
+    if(item.formula && item.formula !== String(item.value)){
+      var fline=document.createElement("div");
+      fline.style.cssText="color:#5c6b80;font-size:12px;margin:-6px 0 12px;";
+      fline.textContent=readableFormula(item.formula);
+      opSheet.appendChild(fline);
+    }
     function actBtn(label, fn){
       var b=document.createElement("button"); b.className="act"; b.textContent=label;
       b.onclick=function(){ fn(); closeOpSheet(); };
@@ -356,6 +371,9 @@
     }
     actBtn("式の最後に追加", function(){ expr += String(item.value); render(); });
     actBtn("式を置き換える", function(){ expr = String(item.value); render(); });
+    if(item.formula && item.formula !== String(item.value)){
+      actBtn("この式を呼び出して再計算する", function(){ expr = item.formula; render(); });
+    }
     actBtn(item.name ? "名前を変更する" : "名前を付ける", function(){
       item.editing=true; renderHistory();
       setTimeout(function(){ var el=elList.querySelector("input"); if(el) el.focus(); },0);
