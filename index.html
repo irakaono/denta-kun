@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="デンタ君">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#1f2733">
+<title>デンタ君</title>
+<style>
+  :root{
+    --bg:#0f141b; --panel:#1f2733; --panel2:#262f3d; --line:#333f52;
+    --txt:#f2f5f9; --sub:#93a1b5; --accent:#ff9500; --key:#2c3746; --key-lite:#3a4658;
+    --ok:#2fbf71; --danger:#e2574c; --star:#ffd60a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;}
+  .app{width:100%;max-width:440px;height:100%;display:flex;flex-direction:column;padding:10px 12px 0;touch-action:manipulation;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 8px;flex-shrink:0;}
+  header h1{font-size:16px;margin:0;font-weight:700;display:flex;align-items:center;gap:6px;}
+  header h1 .logo{background:var(--accent);color:#1a1a1a;border-radius:7px;width:24px;height:24px;display:grid;place-items:center;font-size:14px;font-weight:800;}
+  header .tax-toggle{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:5px;}
+  header select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;}
+
+  .calc-zone{flex-shrink:0;}
+  .display{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:7px;box-shadow:0 4px 14px rgba(0,0,0,.22);}
+  .expr{min-height:24px;font-size:16px;font-weight:500;line-height:1.5;word-break:break-all;color:var(--sub);letter-spacing:.2px;}
+  .expr .gap{display:inline-block;width:6px;height:1.1em;vertical-align:middle;border-radius:3px;transition:width .12s ease,background .12s ease;}
+  .expr .gap.hot{width:24px;background:rgba(255,149,0,.32);border:1.5px dashed var(--accent);}
+  .expr .gap.flash{width:24px;background:rgba(47,191,113,.55);}
+  .expr .caret{color:var(--accent);}
+  .result-row{display:flex;align-items:center;gap:9px;margin-top:4px;}
+  .result{flex:1;min-width:0;text-align:right;font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1.1;white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;color:var(--txt);}
+  .result::-webkit-scrollbar{display:none;}
+  .save-star{flex:0 0 auto;background:var(--panel2);border:1px solid var(--line);border-radius:11px;color:var(--sub);font-size:19px;cursor:pointer;padding:6px 9px;line-height:1;transition:filter .1s,transform .06s;}
+  .save-star:active{transform:scale(.92);filter:brightness(1.3);}
+  .subline{display:flex;justify-content:flex-end;font-size:10px;color:var(--accent);margin-top:3px;min-height:12px;}
+
+  .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+  button.key{border:none;border-radius:13px;height:46px;font-size:18px;font-weight:600;color:var(--txt);background:var(--key);cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;box-shadow:0 2px 0 rgba(0,0,0,.18);transition:filter .08s,transform .05s,box-shadow .05s;}
+  button.key:active{filter:brightness(1.25);transform:scale(.95) translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.18);}
+  .key.fn{background:var(--key-lite);font-size:15px;color:#c9d3e0;}
+  .key.op{background:#2a2416;color:var(--accent);font-size:22px;font-weight:700;}
+  .key.eq{background:var(--accent);color:#1a1005;font-weight:800;box-shadow:0 2px 0 var(--accent-d,#c26f00);}
+
+  .hist-zone{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:10px;border-top:1px solid var(--line);padding-top:9px;}
+  .hist-head{display:flex;justify-content:space-between;align-items:center;margin:0 2px 10px;flex-shrink:0;}
+  .hist-head h2{font-size:12px;margin:0;color:var(--sub);font-weight:700;letter-spacing:.6px;}
+  .hist-head .tools{display:flex;gap:8px;}
+  .hist-head .tools button{background:var(--panel2);border:1px solid var(--line);color:var(--sub);border-radius:9px;font-size:12px;padding:7px 11px;cursor:pointer;transition:filter .08s;}
+  .hist-head .tools button:active{filter:brightness(1.3);}
+  .total-bar{background:linear-gradient(90deg,#20303f,#243447);border:1px solid var(--line);border-radius:13px;padding:11px 15px;margin-bottom:10px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub);}
+  .total-bar b{color:var(--txt);font-size:19px;font-weight:700;}
+  .hist-scroll{flex:1;min-height:0;overflow-y:auto;padding-bottom:22px;}
+  .hist-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .hist-item{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.16);}
+  .hist-item.sel{border-color:var(--ok);background:#17281f;}
+  .chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:0 0 auto;display:grid;place-items:center;cursor:pointer;color:var(--ok);font-size:15px;}
+  .hist-item.sel .chk{border-color:var(--ok);background:var(--ok);color:#08331d;}
+  .star{flex:0 0 auto;font-size:22px;cursor:pointer;color:var(--line);padding:2px;line-height:1;}
+  .star.on{color:var(--star);}
+  .hist-main{flex:1;min-width:0;cursor:grab;touch-action:none;padding:2px 0;}
+  .hist-main:active{cursor:grabbing;}
+  .hist-name{font-size:13px;color:var(--sub);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hist-name input{background:transparent;border:none;color:var(--accent);font-size:13px;width:100%;padding:0;font-family:inherit;}
+  .hist-name input:focus{outline:none;border-bottom:1px dashed var(--accent);}
+  .hist-val{font-size:23px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);}
+  .btn-del{background:var(--panel2);color:var(--danger);border:1px solid var(--line);border-radius:9px;font-size:12px;padding:10px 12px;cursor:pointer;flex:0 0 auto;transition:filter .08s;}
+  .btn-del:active{filter:brightness(1.3);}
+  .empty{color:var(--sub);text-align:center;font-size:13px;padding:28px 10px;opacity:.75;line-height:1.7;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ok);color:#08331d;padding:10px 18px;border-radius:20px;font-size:14px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;}
+  .toast.show{opacity:1;}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:30;}
+  .overlay.show{display:flex;}
+  .sheet{width:100%;max-width:440px;background:var(--panel);border-radius:18px 18px 0 0;padding:14px 14px 22px;}
+  .sheet h3{margin:0 0 3px;font-size:14px;color:var(--sub);}
+  .sheet .sheet-val{color:var(--accent);font-weight:700;font-size:22px;margin-bottom:12px;}
+  .sheet button.act{width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:15px 16px;font-size:15px;margin-bottom:9px;cursor:pointer;transition:filter .08s;}
+  .sheet button.act:active{filter:brightness(1.3);}
+  .sheet button.cancel{width:100%;background:none;border:none;color:var(--sub);padding:10px;font-size:13px;cursor:pointer;}
+
+  .ghost{position:fixed;pointer-events:none;z-index:999;transform:translate(-50%,-125%);background:var(--ok);color:#08331d;font-weight:700;font-size:15px;padding:6px 12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.4);}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="logo">電</span>デンタ君</h1>
+    <label class="tax-toggle">消費税
+      <select id="taxRate">
+        <option value="0.10">10%</option>
+        <option value="0.08">8%</option>
+        <option value="0">なし</option>
+      </select>
+    </label>
+  </header>
+
+  <div class="calc-zone">
+    <div class="display">
+      <div class="expr" id="expr"></div>
+      <div class="result-row">
+        <div class="result" id="result">0</div>
+        <button class="save-star" id="btnSaveStar" title="この答えを保存">💾</button>
+      </div>
+      <div class="subline" id="taxInfo"></div>
+    </div>
+    <div class="keys">
+      <button class="key fn" data-act="clear">AC</button>
+      <button class="key fn" data-act="back">⌫</button>
+      <button class="key fn" data-act="pct">％</button>
+      <button class="key op" data-op="÷">÷</button>
+
+      <button class="key" data-num="7">7</button>
+      <button class="key" data-num="8">8</button>
+      <button class="key" data-num="9">9</button>
+      <button class="key op" data-op="×">×</button>
+
+      <button class="key" data-num="4">4</button>
+      <button class="key" data-num="5">5</button>
+      <button class="key" data-num="6">6</button>
+      <button class="key op" data-op="−">−</button>
+
+      <button class="key" data-num="1">1</button>
+      <button class="key" data-num="2">2</button>
+      <button class="key" data-num="3">3</button>
+      <button class="key op" data-op="＋">＋</button>
+
+      <button class="key" data-num="0">0</button>
+      <button class="key" data-num=".">.</button>
+      <button class="key fn" data-act="taxin">税込</button>
+      <button class="key eq" data-act="eq">＝</button>
+    </div>
+  </div>
+
+  <div class="hist-zone">
+    <div class="hist-head">
+      <h2>保存した答え</h2>
+      <div class="tools">
+        <button id="btnSum">合計</button>
+        <button id="btnClear">全消去</button>
+      </div>
+    </div>
+    <div class="total-bar" id="totalBar" style="display:none;"><span>選択項目の合計</span><b id="totalVal">0</b></div>
+    <div class="hist-scroll">
+      <ul class="hist-list" id="histList"></ul>
+      <div class="empty" id="emptyMsg">計算した答えは、結果の横の💾ボタンを押すとここに保存されます。<br>保存した答えは式の好きな場所にドラッグできます。</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="overlay" id="opOverlay"><div class="sheet" id="opSheet"></div></div>
+<div class="ghost" id="ghost" style="display:none;"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ================= 式エンジン（文字列ベース、消えない） =================
+  var expr = "";
+  var history = [];
+  var idc = 1;
+
+  var STORE_KEY="dentakun_history_v4";
+  var canStore=true;
+  function load(){ try{ var raw=localStorage.getItem(STORE_KEY); if(raw) history=JSON.parse(raw)||[]; }catch(e){ canStore=false; } }
+  function persist(){ if(!canStore) return; try{ localStorage.setItem(STORE_KEY, JSON.stringify(history)); }catch(e){ canStore=false; } }
+
+  function tokenize(s){ return s.match(/(\d+\.?\d*|\.\d+|[+\-×÷＋−%()])/g) || []; }
+  function safeEval(s){
+    if(!s) return "";
+    var cleaned = s.replace(/＋/g,"+").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")
+      .replace(/(\d+\.?\d*)%/g,"($1/100)");
+    if(!/^[0-9+\-*/().\s]+$/.test(cleaned)) return "";
+    try{
+      var v = Function('"use strict";return ('+cleaned+')')();
+      if(typeof v!=="number" || !isFinite(v)) return "";
+      return Math.round((v+Number.EPSILON)*1e10)/1e10;
+    }catch(e){ return ""; }
+  }
+  function fmtNum(n){
+    if(n===""||n===null||typeof n==="undefined") return "";
+    if(!isFinite(n)) return "エラー";
+    var neg=n<0; var s=String(Math.abs(n)); var parts=s.split(".");
+    var intp=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
+    return (neg?"-":"")+intp+(parts.length>1?"."+parts[1]:"");
+  }
+
+  var elExpr=document.getElementById("expr"), elResult=document.getElementById("result"), elTaxInfo=document.getElementById("taxInfo");
+  var gapEls=[];
+
+  function render(){
+    elExpr.innerHTML=""; gapEls=[];
+    var tokens=tokenize(expr);
+    function makeGap(i){ var g=document.createElement("span"); g.className="gap"; g.dataset.i=i; gapEls[i]=g; return g; }
+    if(tokens.length===0){ elExpr.appendChild(makeGap(0)); }
+    else{
+      tokens.forEach(function(t,i){
+        elExpr.appendChild(makeGap(i));
+        var sp=document.createElement("span"); sp.textContent=t; elExpr.appendChild(sp);
+      });
+      elExpr.appendChild(makeGap(tokens.length));
+    }
+    var caret=document.createElement("span"); caret.className="caret"; caret.textContent="|"; elExpr.appendChild(caret);
+    var r=safeEval(expr);
+    elResult.textContent = r==="" ? "0" : fmtNum(r);
+  }
+
+  function press(key){
+    elTaxInfo.textContent="";
+    if(key==="clear"){ expr=""; render(); return; }
+    if(key==="back"){ expr=expr.slice(0,-1); render(); return; }
+    if(key==="pct"){ expr+="%"; render(); return; }
+    if(key==="eq"){
+      var r=safeEval(expr);
+      if(r===""){ toast("式が不完全です"); return; }
+      expr=String(r); render(); return;
+    }
+    if(key==="taxin"){
+      var rate=parseFloat(document.getElementById("taxRate").value);
+      var base=safeEval(expr);
+      if(base===""){ toast("計算できません"); return; }
+      var val=base*(1+rate);
+      expr=String(Math.round((val+Number.EPSILON)*1e10)/1e10);
+      elTaxInfo.textContent="税込（"+Math.round(rate*100)+"%）";
+      render(); return;
+    }
+  }
+  function saveCurrentResult(){
+    var v=safeEval(expr);
+    if(v===""){ toast("保存できません"); return; }
+    saveToHistory(v);
+    toast("保存しました");
+  }
+  function insertAtGap(i, text){
+    var tokens=tokenize(expr);
+    tokens.splice(i,0,text);
+    expr=tokens.join("");
+    render();
+    if(gapEls[i]){ gapEls[i].classList.add("flash"); setTimeout(function(){ render(); },350); }
+  }
+
+  // ================= 履歴 =================
+  var elList=document.getElementById("histList"), elEmpty=document.getElementById("emptyMsg");
+
+  function saveToHistory(value){
+    history.unshift({ id:"h"+(idc++), name:"", value:value, star:false, sel:false, editing:false });
+    if(history.length>200) history.pop();
+    persist(); renderHistory();
+  }
+  function delItem(id){ history=history.filter(function(h){return h.id!==id;}); persist(); renderHistory(); updateTotal(); }
+  function clearHistory(){
+    if(!history.length) return;
+    if(confirm("保存した答えをすべて消去しますか？")){
+      history=[]; persist(); renderHistory();
+      document.getElementById("totalBar").style.display="none";
+    }
+  }
+  function toggleStar(item){ item.star=!item.star; persist(); renderHistory(); }
+  function sortedHistory(){
+    var starred=history.filter(function(h){return h.star;});
+    var rest=history.filter(function(h){return !h.star;});
+    return starred.concat(rest);
+  }
+
+  function renderHistory(){
+    elList.innerHTML="";
+    var list=sortedHistory();
+    if(!list.length){ elEmpty.style.display="block"; render(); return; }
+    elEmpty.style.display="none";
+    list.forEach(function(item){
+      var li=document.createElement("li");
+      li.className="hist-item"+(item.sel?" sel":"");
+
+      var chk=document.createElement("div"); chk.className="chk"; chk.innerHTML=item.sel?"✓":"";
+      chk.onclick=function(){ item.sel=!item.sel; renderHistory(); updateTotal(); };
+
+      var star=document.createElement("div");
+      star.className="star"+(item.star?" on":"");
+      star.textContent=item.star?"★":"☆";
+      star.onclick=function(){ toggleStar(item); };
+
+      var main=document.createElement("div"); main.className="hist-main";
+      if(item.editing){
+        var nameWrap=document.createElement("div"); nameWrap.className="hist-name";
+        var inp=document.createElement("input");
+        inp.type="text"; inp.placeholder="名前をつける（任意）"; inp.value=item.name||"";
+        inp.onclick=function(e){ e.stopPropagation(); };
+        inp.oninput=function(){ item.name=inp.value; };
+        inp.onblur=function(){ item.editing=false; persist(); renderHistory(); };
+        inp.onkeydown=function(e){ if(e.key==="Enter") inp.blur(); };
+        nameWrap.appendChild(inp); main.appendChild(nameWrap);
+      } else if(item.name){
+        var nameShown=document.createElement("div"); nameShown.className="hist-name"; nameShown.textContent=item.name;
+        main.appendChild(nameShown);
+      }
+      var val=document.createElement("div"); val.className="hist-val"; val.textContent=fmtNum(item.value);
+      main.appendChild(val);
+
+      // タップ → 操作メニュー／ドラッグ → 式の好きな場所に挿入
+      main.addEventListener("click", function(){ if(!item.editing && !justDragged) openOpSheet(item); });
+      main.addEventListener("mousedown", function(e){ if(!item.editing) startDrag(e, item.value); });
+      main.addEventListener("touchstart", function(e){ if(!item.editing) startDrag(e, item.value); }, {passive:false});
+
+      var dl=document.createElement("button"); dl.className="btn-del"; dl.textContent="削除";
+      dl.onclick=function(){ delItem(item.id); };
+
+      li.appendChild(star); li.appendChild(chk); li.appendChild(main); li.appendChild(dl);
+      elList.appendChild(li);
+    });
+    render();
+  }
+
+  function updateTotal(){
+    var sel=history.filter(function(h){return h.sel;});
+    var bar=document.getElementById("totalBar");
+    if(!sel.length){ bar.style.display="none"; return; }
+    var sum=sel.reduce(function(a,h){return a+h.value;},0);
+    document.getElementById("totalVal").textContent=fmtNum(sum);
+    bar.style.display="flex";
+  }
+  function sumAll(){
+    if(!history.length){ toast("履歴がありません"); return; }
+    var anySel=history.some(function(h){return h.sel;});
+    if(!anySel){ history.forEach(function(h){h.sel=true;}); renderHistory(); }
+    updateTotal();
+    var sum=history.filter(function(h){return h.sel;}).reduce(function(a,h){return a+h.value;},0);
+    expr=String(sum); render();
+    toast("合計を式に入れました");
+  }
+
+  // ================= タップ操作メニュー =================
+  var opOverlay=document.getElementById("opOverlay"), opSheet=document.getElementById("opSheet");
+  function openOpSheet(item){
+    opSheet.innerHTML="";
+    var h=document.createElement("h3"); h.textContent=item.name||"保存した答え";
+    var v=document.createElement("div"); v.className="sheet-val"; v.textContent=fmtNum(item.value);
+    opSheet.appendChild(h); opSheet.appendChild(v);
+    function actBtn(label, fn){
+      var b=document.createElement("button"); b.className="act"; b.textContent=label;
+      b.onclick=function(){ fn(); closeOpSheet(); };
+      opSheet.appendChild(b);
+    }
+    actBtn("式の最後に追加", function(){ expr += String(item.value); render(); });
+    actBtn("式を置き換える", function(){ expr = String(item.value); render(); });
+    actBtn(item.name ? "名前を変更する" : "名前を付ける", function(){
+      item.editing=true; renderHistory();
+      setTimeout(function(){ var el=elList.querySelector("input"); if(el) el.focus(); },0);
+    });
+    var cancel=document.createElement("button"); cancel.className="cancel"; cancel.textContent="閉じる（ドラッグで途中に挿入も可）";
+    cancel.onclick=closeOpSheet;
+    opSheet.appendChild(cancel);
+    opOverlay.classList.add("show");
+  }
+  function closeOpSheet(){ opOverlay.classList.remove("show"); }
+  opOverlay.addEventListener("click", function(e){ if(e.target===opOverlay) closeOpSheet(); });
+
+  // ================= ドラッグ&ドロップ（タッチ対応） =================
+  var dragging=null, justDragged=false;
+  var elGhost=document.getElementById("ghost");
+
+  function nearestGap(x,y){
+    var best=null, bestDist=Infinity;
+    gapEls.forEach(function(node,i){
+      if(!node) return;
+      var r=node.getBoundingClientRect();
+      var cx=r.left+r.width/2, cy=r.top+r.height/2;
+      var d=Math.hypot(x-cx,y-cy);
+      if(d<bestDist){ bestDist=d; best=i; }
+    });
+    return best;
+  }
+  function startDrag(e, value){
+    e.preventDefault();
+    var p=e.touches?e.touches[0]:e;
+    dragging={ value:value, startX:p.clientX, startY:p.clientY, moved:false };
+    elGhost.style.display="block";
+    elGhost.textContent=fmtNum(value);
+    moveGhost(p.clientX,p.clientY);
+  }
+  function moveGhost(x,y){ elGhost.style.left=x+"px"; elGhost.style.top=y+"px"; }
+  function clearHot(){ gapEls.forEach(function(g){ if(g) g.classList.remove("hot"); }); }
+
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("touchmove", onMove, {passive:false});
+  window.addEventListener("mouseup", onUp);
+  window.addEventListener("touchend", onUp);
+
+  function onMove(e){
+    if(!dragging) return;
+    e.preventDefault();
+    var p=e.touches?e.touches[0]:e;
+    if(Math.hypot(p.clientX-dragging.startX, p.clientY-dragging.startY) > 6) dragging.moved=true;
+    moveGhost(p.clientX,p.clientY);
+    clearHot();
+    var gi=nearestGap(p.clientX,p.clientY);
+    if(gi!==null && gapEls[gi]) gapEls[gi].classList.add("hot");
+  }
+  function onUp(e){
+    if(!dragging) return;
+    var p=e.changedTouches?e.changedTouches[0]:e;
+    clearHot();
+    if(dragging.moved){
+      var gi=nearestGap(p.clientX,p.clientY);
+      if(gi!==null) insertAtGap(gi, String(dragging.value));
+      justDragged=true;
+      setTimeout(function(){ justDragged=false; }, 50);
+    }
+    dragging=null;
+    elGhost.style.display="none";
+  }
+
+  // ================= トースト =================
+  var toastEl=document.getElementById("toast"), toastT;
+  function toast(msg){ toastEl.textContent=msg; toastEl.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(function(){toastEl.classList.remove("show");},1400); }
+
+  // ================= キー =================
+  document.querySelector(".keys").addEventListener("click", function(e){
+    var t=e.target.closest("button"); if(!t) return;
+    if(t.hasAttribute("data-num")){ expr+=t.getAttribute("data-num"); render(); return; }
+    if(t.hasAttribute("data-op")){ expr+=t.getAttribute("data-op"); render(); return; }
+    var a=t.getAttribute("data-act");
+    if(a) press(a);
+  });
+  document.getElementById("btnSum").onclick=sumAll;
+  document.getElementById("btnClear").onclick=clearHistory;
+  document.getElementById("btnSaveStar").onclick=saveCurrentResult;
+
+  document.addEventListener("keydown", function(e){
+    var k=e.key;
+    if(k>="0"&&k<="9"){ expr+=k; render(); }
+    else if(k==="."){ expr+="."; render(); }
+    else if(k==="+"){ expr+="＋"; render(); }
+    else if(k==="-"){ expr+="−"; render(); }
+    else if(k==="*"){ expr+="×"; render(); }
+    else if(k==="/"){ expr+="÷"; render(); }
+    else if(k==="Enter"||k==="="){ e.preventDefault(); press("eq"); }
+    else if(k==="Backspace") press("back");
+    else if(k==="Escape") press("clear");
+    else if(k==="%") press("pct");
+  });
+
+  load();
+  renderHistory();
+  render();
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
