@@ -495,6 +495,7 @@
       cut:Math.round(inv.base)-x1,
       incl:Math.round(x1*(1+t)),
       lost:Math.round(x1*t*(1-r)),
+      deduct:Math.round(x1*t*r),
       more:Math.round(inv.base*t*(1-r)),
       y:y,
       yIncl:Math.round(y*(1+t)),
@@ -533,7 +534,8 @@
         '<div class="inv-row"><span>元の税別金額</span><b>'+fmtNum(c.x0)+'</b></div>'+
         '<div class="inv-row"><span>減額</span><b class="minus">−'+fmtNum(c.cut)+'</b></div>'+
         '<div class="inv-row"><span>調整後の税込金額（参考）</span><b>'+fmtNum(c.incl)+'</b></div>'+
-        '<div class="inv-row"><span>控除できない消費税（調整で吸収）</span><b>'+fmtNum(c.lost)+'</b></div>';
+        '<div class="inv-row"><span>控除できる消費税（調整後）</span><b>'+fmtNum(c.deduct)+'</b></div>'+
+        '<div class="inv-row"><span>実質の負担（税込−控除できる消費税）</span><b>'+fmtNum(c.incl-c.deduct)+'</b></div>';
     }
     invSheet.appendChild(box);
 
