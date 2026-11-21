@@ -486,7 +486,7 @@
   function invCalc(){
     var t=parseFloat(document.getElementById("taxRate").value)||0;
     var r=inv.rate;
-    var k=1+t*(1-r)/(1+t);
+    var k=1+t*(1-r);
     var x1=Math.round(inv.base/k);
     var y=Math.round(inv.base*(1+t)/(1+t+t*(1-r)));
     return {
@@ -533,9 +533,7 @@
         '<div class="inv-row"><span>元の税別金額</span><b>'+fmtNum(c.x0)+'</b></div>'+
         '<div class="inv-row"><span>減額</span><b class="minus">−'+fmtNum(c.cut)+'</b></div>'+
         '<div class="inv-row"><span>調整後の税込金額（参考）</span><b>'+fmtNum(c.incl)+'</b></div>'+
-        '<div class="inv-row"><span>控除できない消費税（調整で吸収）</span><b>'+fmtNum(c.lost)+'</b></div>'+
-        '<div class="inv-row"><span>税込＋控除できない消費税（合計）</span><b>'+fmtNum(c.incl+c.lost)+'</b></div>'+
-        '<div class="inv-row"><span>元の税込金額</span><b>'+fmtNum(c.x0+Math.round(c.x0*c.t))+'</b></div>';
+        '<div class="inv-row"><span>控除できない消費税（調整で吸収）</span><b>'+fmtNum(c.lost)+'</b></div>';
     }
     invSheet.appendChild(box);
 
