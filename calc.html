@@ -493,7 +493,8 @@
       x0:Math.round(inv.base),
       cut:Math.round(inv.base)-x1,
       incl:Math.round(x1*(1+t)),
-      lost:Math.round(x1*t*(1-r))
+      lost:Math.round(x1*t*(1-r)),
+      more:Math.round(inv.base*t*(1-r))
     };
   }
   function renderInv(){
@@ -524,6 +525,7 @@
       box.innerHTML=
         '<div class="lbl">調整後の発注額（税別）</div>'+
         '<div class="big">'+fmtNum(c.x1)+'</div>'+
+        '<div class="inv-row"><span>このまま発注した場合の負担増</span><b class="minus">+'+fmtNum(c.more)+'</b></div>'+
         '<div class="inv-row"><span>元の税別金額</span><b>'+fmtNum(c.x0)+'</b></div>'+
         '<div class="inv-row"><span>減額</span><b class="minus">−'+fmtNum(c.cut)+'</b></div>'+
         '<div class="inv-row"><span>調整後の税込金額（参考）</span><b>'+fmtNum(c.incl)+'</b></div>'+
