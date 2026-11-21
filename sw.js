@@ -1,5 +1,5 @@
 // デンタ君 - オフライン用サービスワーカー
-var CACHE_NAME = "dentakun-v9";
+var CACHE_NAME = "dentakun-v10";
 var FILES_TO_CACHE = [
   "./",
   "./index.html",
