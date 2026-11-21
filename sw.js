@@ -1,5 +1,5 @@
 // デンタ君 - オフライン用サービスワーカー
-var CACHE_NAME = "dentakun-v11";
+var CACHE_NAME = "dentakun-v12";
 var FILES_TO_CACHE = [
   "./",
   "./index.html",
@@ -14,7 +14,7 @@ self.addEventListener("install", function(e){
   self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then(function(cache){
-      return cache.addAll(FILES_TO_CACHE);
+      return Promise.all(FILES_TO_CACHE.map(function(f){ return cache.add(new Request(f,{cache:"reload"})); }));
     })
   );
 });
