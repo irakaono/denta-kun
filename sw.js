@@ -1,8 +1,10 @@
 // デンタ君 - オフライン用サービスワーカー
-var CACHE_NAME = "dentakun-v3";
+var CACHE_NAME = "dentakun-v8";
 var FILES_TO_CACHE = [
   "./",
   "./index.html",
+  "./calc.html",
+  "./gradient.html",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png"
